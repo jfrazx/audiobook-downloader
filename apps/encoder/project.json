@@ -1,0 +1,26 @@
+{
+  "name": "encoder",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/encoder/src",
+  "projectType": "application",
+  "tags": ["app encoder"],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "encoder:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "encoder:build:development"
+        },
+        "production": {
+          "buildTarget": "encoder:build:production"
+        }
+      }
+    }
+  }
+}

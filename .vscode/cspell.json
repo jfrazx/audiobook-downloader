@@ -1,0 +1,42 @@
+{
+  "version": "0.2",
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/public/**",
+    ".eslintrc.js"
+  ],
+  "ignoreWords": [],
+  "ignoreRegExpList": [
+    "/from '[a-zA-Z]'/",
+    "/\"name\": \"[a-zA-Z]+\"/",
+    "/\"[a-zA-Z]*\": \"1.0.0\"/",
+    "/YY[YMD hms]+/"
+  ],
+  "words": [
+    "AIDEM",
+    "ascm",
+    "audiobook",
+    "camelcase",
+    "Dtos",
+    "ELOSNOC",
+    "envirator",
+    "epub",
+    "EVIRDREVO",
+    "ffmepg",
+    "ffprobe",
+    "filesize",
+    "getify",
+    "loglevel",
+    "Mikro",
+    "nestjs",
+    "nostdin",
+    "Parens",
+    "remux",
+    "Remuxing",
+    "SDMI",
+    "typeorm"
+  ]
+}

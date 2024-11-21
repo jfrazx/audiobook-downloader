@@ -14,7 +14,14 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@abd/common": ["libs/common/src/index.ts"],
+      "@abd/config": ["libs/config/src/index.ts"],
+      "@abd/constants": ["libs/constants/src/index.ts"],
+      "@abd/interfaces": ["libs/interfaces/src/index.ts"],
+      "@abd/tasks": ["libs/tasks/src/index.ts"],
+      "@abd/utils": ["libs/utils/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

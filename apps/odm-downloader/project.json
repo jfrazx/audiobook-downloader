@@ -1,0 +1,26 @@
+{
+  "name": "odm-downloader",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/odm-downloader/src",
+  "projectType": "application",
+  "tags": ["odm"],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "odm-downloader:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "odm-downloader:build:development"
+        },
+        "production": {
+          "buildTarget": "odm-downloader:build:production"
+        }
+      }
+    }
+  }
+}

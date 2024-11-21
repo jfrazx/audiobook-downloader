@@ -34,8 +34,22 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/api-e2e/**/*"]
+      "exclude": [
+        "apps/api-e2e/**/*",
+        "apps/watcher-node-e2e/**/*",
+        "apps/odm-downloader-e2e/**/*",
+        "apps/encoder-e2e/**/*",
+        "apps/watcher-e2e/**/*",
+        "apps/tasks-e2e/**/*"
+      ]
     }
   ],
-  "nxCloudAccessToken": "NzJiNjQyZTItODZmOC00NWQ3LTgzYWEtNzEwNmUwNzY0MWMzfHJlYWQtd3JpdGU="
+  "nxCloudAccessToken": "NzJiNjQyZTItODZmOC00NWQ3LTgzYWEtNzEwNmUwNzY0MWMzfHJlYWQtd3JpdGU=",
+  "targetDefaults": {
+    "@nx/esbuild:esbuild": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    }
+  }
 }

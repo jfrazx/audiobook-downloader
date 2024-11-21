@@ -1,0 +1,26 @@
+{
+  "name": "watcher",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/watcher/src",
+  "projectType": "application",
+  "tags": ["watcher odm ascm app"],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "watcher:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "watcher:build:development"
+        },
+        "production": {
+          "buildTarget": "watcher:build:production"
+        }
+      }
+    }
+  }
+}

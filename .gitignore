@@ -20,6 +20,7 @@ node_modules
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json
+!.vscode/cspell.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -33,6 +34,7 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+.env
 
 # System Files
 .DS_Store
@@ -40,3 +42,6 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
+
+uploads/
+!uploads/.gitkeep
