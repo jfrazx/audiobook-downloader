@@ -1,14 +1,9 @@
-import type {
-  Metadata,
-  ODMContent,
-  License,
-  LicensePaths,
-  EncodeODMMessage,
-  MP3Metadata,
-} from '@abd/interfaces';
+import type { Metadata, ODMContent, License, LicensePaths, MP3Metadata } from '@abd/interfaces';
 import type * as Payloads from '../interfaces/payload.interface';
 import { Injectable, Logger } from '@nestjs/common';
+import { wrapDefaults } from '@status/defaults';
 import { XMLParser } from 'fast-xml-parser';
+import { asArray } from '@jfrazx/asarray';
 import * as crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { ODM } from '@abd/constants';
@@ -18,7 +13,6 @@ import * as path from 'node:path';
 import assert from 'node:assert';
 import { URL } from 'node:url';
 import * as fs from 'node:fs';
-import { wrapDefaults } from '@status/defaults';
 
 @Injectable()
 export class OdmService {
@@ -98,12 +92,13 @@ export class OdmService {
 
   extractMP3Metadata(odm: ODMContent): MP3Metadata {
     const metadata = odm.OverDriveMedia.Metadata;
-    const genres = metadata.Subjects.Subject.map((subject) => subject['#text']?.trim()).filter(
-      (subject) => subject,
-    );
-    const languages = metadata.Languages.Language.map((language) => language['#text']?.trim()).filter(
-      (language) => language,
-    );
+    const genres = asArray(metadata.Subjects.Subject)
+      .map((subject) => subject['#text']?.trim())
+      .filter((subject) => subject);
+
+    const languages: string[] = asArray(metadata.Languages.Language)
+      .map((language) => language['#text']?.trim())
+      .filter((language) => language);
 
     const creators = wrapDefaults({
       wrap: new Map<string, string[]>(),
@@ -112,7 +107,7 @@ export class OdmService {
       execute: true,
     });
 
-    for (const creator of metadata.Creators.Creator) {
+    for (const creator of asArray(metadata.Creators.Creator)) {
       creators.get(creator.role).push(creator['#text']);
     }
 
@@ -124,7 +119,7 @@ export class OdmService {
       narrators: creators.get('Narrator'),
       publisher: metadata.Publisher,
       published_date: null,
-      series: metadata.Series ? [metadata.Series] : [],
+      series: asArray(metadata.Series),
       sort_title: metadata.SortTitle,
       subtitle: metadata.SubTitle,
       title: metadata.Title,
@@ -152,14 +147,14 @@ export class OdmService {
     const writerComplete = new Promise((resolve) => writer.on('finish', resolve));
 
     let done = false;
-    while (!done) {
+    do {
       const readContent = await reader.read();
       if (readContent.value) {
         writer.write(readContent.value);
       }
 
       done = readContent.done;
-    }
+    } while (!done);
 
     writer.end();
 

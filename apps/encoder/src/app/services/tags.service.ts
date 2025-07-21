@@ -1,3 +1,4 @@
+import type * as Payloads from '../interfaces/payloads.interface';
 import { Injectable } from '@nestjs/common';
 import mm from 'music-metadata';
 
@@ -6,7 +7,11 @@ export class TagsService {
   /**
    * @todo
    */
-  embedMetadata(filePath: string, metadata: any) {
-    return mm;
+  async embedMetadata(payload: Payloads.Metadata) {
+    const meta = {
+      album: payload.audio_metadata.title,
+    };
+
+    mm.loadMusicMetadata;
   }
 }

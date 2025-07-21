@@ -5,8 +5,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { FfmpegService } from '../services/ffmpeg.service';
 import { Topic } from '../constants/topic.enum';
-import { from, mergeMap, of } from 'rxjs';
-import { ObjectId } from 'mongoose';
+import { from, mergeMap } from 'rxjs';
+import { ObjectId, Schema } from 'mongoose';
 import assert from 'node:assert';
 
 @Injectable()
@@ -50,7 +50,15 @@ export class TaskProcessingService {
    * @todo
    */
   embedMetadata(task: Task, payload: Payloads.Metadata) {
-    return of();
+    return from(this.ffmpegService.embedMetadata(payload)).pipe(
+      mergeMap(() =>
+        this.clientProxy.emit(TaskEvent.Update, {
+          _id: task.parent_task_id,
+          $inc: { 'payload.metadata.files_completed': 1 },
+        }),
+      ),
+      mergeMap(() => this.completeTask(task._id)),
+    );
   }
 
   private spawnRemuxTasks(task: Task, payload: Payloads.ProcessODM) {
@@ -76,30 +84,30 @@ export class TaskProcessingService {
           $inc: { 'payload.remux.files_completed': 1 },
         }),
       ),
-      mergeMap(() =>
-        this.clientProxy.emit(TaskEvent.Update, {
-          _id: task._id,
-          status: Status.Completed,
-          completed_at: new Date(),
-        }),
-      ),
+      mergeMap(() => this.completeTask(task._id)),
     );
   }
 
   private sendComplete<T>(task: Task<T>) {
     assert(task.parent_task_id, 'Parent task ID must be provided');
 
-    return this.clientProxy.send(TaskEvent.Create, task).pipe(
-      mergeMap((nextTask) =>
-        from(
-          this.clientProxy.emit(TaskEvent.Update, {
-            _id: task.parent_task_id,
-            status: Status.Completed,
-            completed_at: new Date(),
-          }),
-        ).pipe(mergeMap(() => this.clientProxy.emit(Message.EncoderProcess, nextTask))),
-      ),
-    );
+    return this.clientProxy
+      .send(TaskEvent.Create, task)
+      .pipe(
+        mergeMap((nextTask) =>
+          from(this.completeTask(task.parent_task_id)).pipe(
+            mergeMap(() => this.clientProxy.emit(Message.EncoderProcess, nextTask)),
+          ),
+        ),
+      );
+  }
+
+  private completeTask(taskId: Schema.Types.ObjectId) {
+    return this.clientProxy.emit<Task>(TaskEvent.Update, {
+      _id: taskId,
+      status: Status.Completed,
+      completed_at: new Date(),
+    });
   }
 
   private sendChildTasks<T>(tasks: Task<T>[], parentId: ObjectId) {

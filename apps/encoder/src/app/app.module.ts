@@ -9,10 +9,7 @@ import { Module } from '@nestjs/common';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: configuration,
-    }),
+    ConfigModule.forRoot({ isGlobal: true, load: configuration }),
     ClientsModule.register([{ name: CLIENT_PROXY, transport: Transport.MQTT }]),
     MongooseModule.forRoot('mongodb://localhost/audiobook-downloader'),
     EncodeTasksModule,

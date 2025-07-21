@@ -15,6 +15,7 @@ interface ConcurrencyGroup {
 
 @Injectable()
 export class ConcurrencyInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(ConcurrencyInterceptor.name);
   private readonly concurrent = wrapDefaults({
     wrap: new Map<string, Map<string, ConcurrencyGroup>>(),
     defaultValue: () => new Map<string, ConcurrencyGroup>(),
@@ -28,7 +29,7 @@ export class ConcurrencyInterceptor implements NestInterceptor {
     const [task] = <[Task, MqttContext]>context.getArgs();
 
     if (task.topic !== Topic.DownloadFile) {
-      Logger.debug(`${task.topic} is not a file download task, skipping concurrency`);
+      this.logger.debug(`${task.topic} is not a file download task, skipping concurrency`);
       return next.handle();
     }
 
@@ -46,47 +47,47 @@ export class ConcurrencyInterceptor implements NestInterceptor {
       task,
     };
 
-    Logger.log(
+    this.logger.log(
       `Concurrency group for parent task: ${parentId} has ${group.size} tasks and ${filesConcurrency} allowed concurrency and should wait: ${shouldWait}`,
     );
 
     group.set(taskId, concurrencyGroup);
 
     if (!shouldWait) {
-      Logger.debug(`Skipping concurrency for task: ${task.topic} with ID: ${task._id}`);
+      this.logger.debug(`Skipping concurrency for task: ${task.topic} with ID: ${task._id}`);
 
       return next.handle().pipe(
-        tap(() => Logger.debug(`Task: ${task.topic} with ID: ${task._id} completed`)),
+        tap(() => this.logger.debug(`Task: ${task.topic} with ID: ${task._id} completed`)),
         tap(() => this.nextHandler(parentId, taskId)),
       );
     }
 
-    Logger.debug(`Applying concurrency for task: ${task.topic} with ID: ${task._id}`);
+    this.logger.debug(`Applying concurrency for task: ${task.topic} with ID: ${task._id}`);
 
     return subject.pipe(
-      tap(() => Logger.debug(`Resuming task: ${task.topic} with ID: ${task._id}`)),
+      tap(() => this.logger.debug(`Resuming task: ${task.topic} with ID: ${task._id}`)),
       mergeMap(() => next.handle()),
-      tap(() => Logger.debug(`Task: ${task.topic} with ID: ${task._id} completed`)),
+      tap(() => this.logger.debug(`Task: ${task.topic} with ID: ${task._id} completed`)),
       tap(() => this.nextHandler(parentId, taskId)),
     );
 
     const shouldWait$ = of(shouldWait);
     const apply = shouldWait$.pipe(
       filter((wait) => wait),
-      tap(() => Logger.debug(`Applying concurrency for task: ${task.topic} with ID: ${task._id}`)),
+      tap(() => this.logger.debug(`Applying concurrency for task: ${task.topic} with ID: ${task._id}`)),
       mergeMap(() => subject),
       take(1),
-      tap(() => Logger.debug(`Resuming task: ${task.topic} with ID: ${task._id}`)),
+      tap(() => this.logger.debug(`Resuming task: ${task.topic} with ID: ${task._id}`)),
     );
 
     const skip = shouldWait$.pipe(
       filter((apply) => !apply),
-      tap(() => Logger.debug(`Skipping concurrency for task: ${task.topic} with ID: ${task._id}`)),
+      tap(() => this.logger.debug(`Skipping concurrency for task: ${task.topic} with ID: ${task._id}`)),
     );
 
     return merge(skip, apply).pipe(
       concatMap(() => next.handle()),
-      tap(() => Logger.debug(`Task: ${task.topic} with ID: ${task._id} completed`)),
+      tap(() => this.logger.debug(`Task: ${task.topic} with ID: ${task._id} completed`)),
       tap(() => this.nextHandler(parentId, taskId)),
     );
   }
@@ -103,22 +104,22 @@ export class ConcurrencyInterceptor implements NestInterceptor {
 
     const neededConcurrency = Math.min(pendingTasks.length, availableConcurrency);
 
-    Logger.debug(
+    this.logger.debug(
       `Available concurrency for parent task: ${parentId} is: ${availableConcurrency} and needed concurrency is: ${neededConcurrency}`,
     );
-    Logger.debug(
+    this.logger.debug(
       `Parent task: ${parentId} has ${tasksInProgress} tasks in progress and ${pendingTasks.length} pending tasks`,
     );
 
     for (let i = 0; i < neededConcurrency; i++) {
       const nextGroup = pendingTasks[i];
-      Logger.debug(`Processing next task: ${nextGroup.task.topic} with ID: ${nextGroup.task._id}`);
+      this.logger.debug(`Processing next task: ${nextGroup.task.topic} with ID: ${nextGroup.task._id}`);
       nextGroup.status = Status.InProgress;
       nextGroup.subject.next(nextGroup.task);
     }
 
     if (group.size === 0) {
-      Logger.debug(`Deleting concurrency group for parent task: ${parentId}`);
+      this.logger.debug(`Deleting concurrency group for parent task: ${parentId}`);
       this.concurrent.delete(parentId);
     }
   }

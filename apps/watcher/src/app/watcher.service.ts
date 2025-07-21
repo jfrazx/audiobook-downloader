@@ -8,9 +8,11 @@ import * as fs from 'node:fs';
 
 @Injectable()
 export class WatcherService {
+  private readonly logger = new Logger(WatcherService.name);
+
   watch(watcher: WatcherConfig, api: ApiConfig) {
     assert(watcher?.directories.length, 'No directories to watch');
-    assert(watcher?.extensions.length, 'No extensions to watch');
+    assert(watcher.extensions?.length, 'No extensions to watch');
     assert(api?.host, 'API host is not defined');
 
     return from(watcher.directories).pipe(
@@ -46,7 +48,7 @@ export class WatcherService {
       })
       .on('add', (filePath: string) => {
         if (extensions.includes(path.extname(filePath))) {
-          console.log(`File ${filePath} has been added`);
+          this.logger.log(`File ${filePath} has been added`);
           subject.next(filePath);
         }
       });

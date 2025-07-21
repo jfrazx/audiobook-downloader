@@ -13,15 +13,15 @@ export interface Metadata {
   ThumbnailUrl: string;
   CoverUrl: string;
   Creators: {
-    Creator: Creator[];
+    Creator: Creator[] | Creator;
   };
 
   Subjects: {
-    Subject: Subject[];
+    Subject: Subject[] | Subject;
   };
 
   Languages: {
-    Language: Language[];
+    Language: Language[] | Language;
   };
 }
 

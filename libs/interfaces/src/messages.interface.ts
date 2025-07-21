@@ -18,4 +18,5 @@ export interface ODMImagePart {
 export interface ODMFilePart {
   file_path: string;
   part: Part;
+  total_parts: number;
 }
