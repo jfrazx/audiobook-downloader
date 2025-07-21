@@ -3,4 +3,6 @@ export enum Message {
   EncoderProcess = 'encoder.process.encoder',
   ODMReceived = 'odm.received.odm',
   ODMProcess = 'odm.process.odm',
+  RetrieveOverdrive = 'overdrive.retrieve',
+  ProcessAudiobookFile = 'media.process.audiobook',
 }

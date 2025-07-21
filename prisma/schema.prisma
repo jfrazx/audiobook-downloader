@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid2())
+  email         String    @unique
+  passwordHash  String @map("password_hash")
+  libraries     Library[]
+}
+
+model Library {
+  id                  String   @id @default(cuid2())
+  hostname            String
+  encryptedCredentials String
+  preferences         Json
+  userId              String @map("user_id")
+  user                User     @relation(fields: [userId], references: [id])
+  books               Book[]
+  scans               ScanHistory[]
+}
+
+model Book {
+  id          String          @id @default(cuid2())
+  title       String
+  overdriveId String @map("overdrive_id")
+  libraryId   String @map("library_id")
+  library     Library         @relation(fields: [libraryId], references: [id])
+  files       AudiobookFile[]
+}
+
+model AudiobookFile {
+  id        String   @id @default(cuid2())
+  filePath  String   @map("file_path")
+  duration  Int
+  status    String
+  bookId    String @map("book_id")
+  book      Book     @relation(fields: [bookId], references: [id])
+}
+
+model ScanHistory {
+  id        String   @id @default(cuid2())
+  timestamp DateTime @default(now()) @db.Timestamptz(3)
+  status    String
+  libraryId String @map("library_id")
+  library   Library  @relation(fields: [libraryId], references: [id])
+}
+
+model Job {
+  id        String   @id @default(cuid2())
+  type      String
+  status    String
+  payload   Json
+  priority  Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+}

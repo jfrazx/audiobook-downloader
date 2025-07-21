@@ -1,0 +1,26 @@
+{
+  "name": "scheduler",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/scheduler/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "scheduler:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "scheduler:build:development"
+        },
+        "production": {
+          "buildTarget": "scheduler:build:production"
+        }
+      }
+    }
+  }
+}
