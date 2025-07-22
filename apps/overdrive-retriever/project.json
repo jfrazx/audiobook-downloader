@@ -1,0 +1,26 @@
+{
+  "name": "overdrive-retriever",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/overdrive-retriever/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "overdrive-retriever:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "overdrive-retriever:build:development"
+        },
+        "production": {
+          "buildTarget": "overdrive-retriever:build:production"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "media-processor",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/media-processor/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "media-processor:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "media-processor:build:development"
+        },
+        "production": {
+          "buildTarget": "media-processor:build:production"
+        }
+      }
+    }
+  }
+}

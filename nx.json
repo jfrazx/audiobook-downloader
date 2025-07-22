@@ -40,8 +40,39 @@
         "apps/odm-downloader-e2e/**/*",
         "apps/encoder-e2e/**/*",
         "apps/watcher-e2e/**/*",
-        "apps/tasks-e2e/**/*"
+        "apps/tasks-e2e/**/*",
+        "apps/overdrive-retriever-e2e/**/*",
+        "apps/scheduler-e2e/**/*",
+        "apps/media-processor-e2e/**/*"
       ]
+    },
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "serveTargetName": "serve",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
+    },
+    {
+      "plugin": "@nx/react/router-plugin",
+      "options": {
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "startTargetName": "start",
+        "watchDepsTargetName": "watch-deps",
+        "buildDepsTargetName": "build-deps",
+        "typecheckTargetName": "typecheck"
+      }
     }
   ],
   "nxCloudAccessToken": "NzJiNjQyZTItODZmOC00NWQ3LTgzYWEtNzEwNmUwNzY0MWMzfHJlYWQtd3JpdGU=",
@@ -50,6 +81,28 @@
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
+    },
+    "e2e-ci--**/*": {
+      "dependsOn": ["^build"]
     }
-  }
+  },
+  "generators": {
+    "@nx/react": {
+      "application": {
+        "babel": true,
+        "style": "tailwind",
+        "linter": "eslint",
+        "bundler": "vite"
+      },
+      "component": {
+        "style": "tailwind"
+      },
+      "library": {
+        "style": "tailwind",
+        "linter": "eslint",
+        "unitTestRunner": "vitest"
+      }
+    }
+  },
+  "nxCloudId": "687ed8a570bd87525d03f892"
 }

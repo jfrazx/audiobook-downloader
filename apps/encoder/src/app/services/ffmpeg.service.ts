@@ -1,7 +1,6 @@
 import type * as Payloads from '../interfaces/payloads.interface';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
-import { Logger } from '@nestjs/common';
 import ffmpeg from 'fluent-ffmpeg';
 import * as path from 'node:path';
 import assert from 'node:assert';

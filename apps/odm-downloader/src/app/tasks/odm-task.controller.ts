@@ -40,7 +40,7 @@ export class ODMTaskController {
       ),
       mergeMap((task) => this.taskAssignment(task)),
       catchError((error) => {
-        Logger.error(error.message);
+        this.logger.error(error.message);
 
         return this.clientProxy.emit<Task>(TaskEvent.Update, {
           status: Status.Failed,

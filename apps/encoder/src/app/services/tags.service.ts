@@ -11,7 +11,5 @@ export class TagsService {
     const meta = {
       album: payload.audio_metadata.title,
     };
-
-    mm.loadMusicMetadata;
   }
 }
