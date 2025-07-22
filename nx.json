@@ -17,23 +17,12 @@
   "plugins": [
     {
       "plugin": "@nx/webpack/plugin",
-      "options": {
-        "buildTargetName": "build",
-        "serveTargetName": "serve",
-        "previewTargetName": "preview"
-      }
+      "options": { "buildTargetName": "build", "serveTargetName": "serve", "previewTargetName": "preview" }
     },
-    {
-      "plugin": "@nx/eslint/plugin",
-      "options": {
-        "targetName": "lint"
-      }
-    },
+    { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } },
     {
       "plugin": "@nx/jest/plugin",
-      "options": {
-        "targetName": "test"
-      },
+      "options": { "targetName": "test" },
       "exclude": [
         "apps/api-e2e/**/*",
         "apps/watcher-node-e2e/**/*",
@@ -44,12 +33,8 @@
       ]
     }
   ],
-  "nxCloudAccessToken": "NzJiNjQyZTItODZmOC00NWQ3LTgzYWEtNzEwNmUwNzY0MWMzfHJlYWQtd3JpdGU=",
+  "nxCloudAccessToken": "YmVjZmU2NGUtMmNjYi00YzE0LWE0OTMtMjAyMWUyM2I0OTQ2fHJlYWQtd3JpdGU=",
   "targetDefaults": {
-    "@nx/esbuild:esbuild": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
-    }
+    "@nx/esbuild:esbuild": { "cache": true, "dependsOn": ["^build"], "inputs": ["production", "^production"] }
   }
 }
