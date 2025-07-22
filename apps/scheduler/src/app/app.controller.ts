@@ -9,6 +9,6 @@ export class AppController {
 
   @Get()
   getData() {
-    this.logger.info('Not yet implemented');
+    this.logger.log('Not yet implemented');
   }
 }

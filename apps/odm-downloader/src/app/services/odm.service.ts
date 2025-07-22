@@ -13,6 +13,7 @@ import * as path from 'node:path';
 import assert from 'node:assert';
 import { URL } from 'node:url';
 import * as fs from 'node:fs';
+import * as TimerPromises from 'node:timers/promises';
 
 @Injectable()
 export class OdmService {
@@ -100,7 +101,7 @@ export class OdmService {
       .map((language) => language['#text']?.trim())
       .filter((language) => language);
 
-    const creators = wrapDefaults({
+    const creators = wrapDefaults<Map<string, string[]>, string[]>({
       wrap: new Map<string, string[]>(),
       defaultValue: () => [],
       setUndefined: true,
@@ -144,7 +145,7 @@ export class OdmService {
 
     const reader = response.body.getReader();
     const writer = fs.createWriteStream(downloadPath);
-    const writerComplete = new Promise((resolve) => writer.on('finish', resolve));
+    const writerComplete = new Promise<void>((resolve) => writer.on('finish', resolve));
 
     let done = false;
     do {
@@ -158,7 +159,16 @@ export class OdmService {
 
     writer.end();
 
-    await writerComplete;
+    const TEN_SECONDS_IN_MS = 10_000;
+
+    await Promise.race([
+      TimerPromises.setTimeout(TEN_SECONDS_IN_MS, new Error(`File download from ${url} timed out`)),
+      writerComplete,
+    ]).catch((error) => {
+      Logger.error(`Error downloading file from ${url}: ${error.message}`);
+      throw error;
+    });
+
     await fs.promises.rename(downloadPath, destination);
     return destination;
   }

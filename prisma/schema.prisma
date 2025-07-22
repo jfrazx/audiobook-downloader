@@ -11,54 +11,162 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid2())
-  email         String    @unique
-  passwordHash  String @map("password_hash")
-  libraries     Library[]
+  id String @id @default(cuid(2))
+
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  preferences  Json?     @map("preferences")
+  lastLogin    DateTime? @map("last_login")
+
+  jobs       Job[]
+  libraries Library[]
+  loans     Loan[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 }
 
 model Library {
-  id                  String   @id @default(cuid2())
-  hostname            String
-  encryptedCredentials String
-  preferences         Json
-  userId              String @map("user_id")
-  user                User     @relation(fields: [userId], references: [id])
-  books               Book[]
-  scans               ScanHistory[]
+  id         String  @id @default(cuid(2))
+  hostname   String
+  cardNumber String  @map("card_number")
+  pin        String?
+
+  // Library dropdown selector
+  librarySelector String? @map("library_selector")
+  preferences     Json
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  jobs  Job[]
+  books LibraryItem[]
+  loans Loan[]
+  scans ScanHistory[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 }
 
-model Book {
-  id          String          @id @default(cuid2())
-  title       String
-  overdriveId String @map("overdrive_id")
-  libraryId   String @map("library_id")
-  library     Library         @relation(fields: [libraryId], references: [id])
-  files       AudiobookFile[]
+// create a new model to act as a bridge between a book and a library
+// this will allow us to have multiple libraries with the same book
+model Loan {
+  id        String   @id @default(cuid(2))
+  bookId    String   @map("book_id")
+  libraryId String   @map("library_id")
+  userId    String   @map("user_id")
+  dueDate   DateTime @map("due_date")
+  returned  Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user      User       @relation(fields: [userId], references: [id])
+  book      LibraryItem       @relation(fields: [bookId], references: [id])
+  library   Library    @relation(fields: [libraryId], references: [id])
+  loanFiles LoanFile[]
 }
 
-model AudiobookFile {
-  id        String   @id @default(cuid2())
+enum LibraryItemType {
+  Magazine
+  Audiobook
+  Ebook
+}
+
+model LibraryItem {
+  id String @id @default(cuid(2))
+
+  // Total file(s) size in kb for either audiobook or ebook
+  authors     String[] @map("authors")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  chapters    Json?    @map("chapters")
+  coverUrl    String?  @map("cover_url")
+  description String?
+  duration    Int?
+  fileSize    Int?     @map("file_size")
+  isbn        String?  @map("isbn")
+
+  language String? @map("language")
+
+  narrators   String[]  @map("narrators")
+  overdriveId String    @map("overdrive_id")
+  releaseDate DateTime? @map("release_date")
+  publisher   String?   @map("publisher")
+  series      String[]  @map("series")
+  seriesIndex String?   @map("series_index")
+
+  subjects String[] @map("subjects")
+  subtitle String?  @map("subtitle")
+  title    String
+
+  type      LibraryItemType
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  loans     Loan[]
+  libraries Library[]
+}
+
+enum LoanFileStatus {
+  Skipped
+  Pending
+  Processing
+  Downloaded
+  Failed
+}
+
+model LoanFile {
+  id        String   @id @default(cuid(2))
+
   filePath  String   @map("file_path")
-  duration  Int
-  status    String
-  bookId    String @map("book_id")
-  book      Book     @relation(fields: [bookId], references: [id])
+  fileName  String   @map("file_name")
+
+  duration  Int?
+
+  status    LoanFileStatus @default(Processing) @map("status")
+
+  loanId    String   @map("loan_id")
+  loan      Loan     @relation(fields: [loanId], references: [id])
+
+  fileSize  Int?     @map("file_size")
+  fileType  String?  @map("file_type")
+  fileUrl   String?  @map("file_url")
+  metadata  Json?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 }
 
 model ScanHistory {
-  id        String   @id @default(cuid2())
+  id        String   @id @default(cuid(2))
   timestamp DateTime @default(now()) @db.Timestamptz(3)
   status    String
-  libraryId String @map("library_id")
-  library   Library  @relation(fields: [libraryId], references: [id])
+
+  libraryId String  @map("library_id")
+  library   Library @relation(fields: [libraryId], references: [id])
 }
 
 model Job {
-  id        String   @id @default(cuid2())
-  type      String
-  status    String
-  payload   Json
+  id   String @id @default(cuid(2))
+  type String
+
+  status JobStatus @default(Pending) @map("status")
+
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id])
+
+  payload   Json?
   priority  Int
+
+  library   Library? @relation(fields: [libraryId], references: [id])
+  libraryId String?
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+}
+
+enum JobStatus {
+  Pending
+  InProgress
+  Completed
+  Failed
 }

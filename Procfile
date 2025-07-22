@@ -1,6 +1,6 @@
 api: nx run api:serve
 tasks: nx run tasks:serve
-webapp: nx run webapp:serve
+web: nx run web-client:start
 watcher: nx run watcher:serve
 encoder: nx run encoder:serve
 scheduler: nx run scheduler:serve
