@@ -1,9 +1,9 @@
-import NxWelcome from './nx-welcome';
+import Welcome from './welcome';
 
 export function App() {
   return (
     <div>
-      <NxWelcome title="web-client" />
+      <Welcome title="web-client" />
     </div>
   );
 }
