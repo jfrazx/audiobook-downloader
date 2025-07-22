@@ -30,6 +30,7 @@
     "workspace-schematic": "nx workspace-schematic",
     "prisma:format": "npx prisma format",
     "dep-graph": "nx dep-graph",
+    "db:migrate:dev": "npx prisma migrate dev --name",
     "help": "nx help"
   },
   "private": true,

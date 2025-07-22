@@ -40,6 +40,7 @@
     "remux",
     "Remuxing",
     "SDMI",
+    "Timestamptz",
     "typeorm"
   ]
 }

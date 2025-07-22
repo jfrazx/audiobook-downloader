@@ -18,12 +18,62 @@ model User {
   preferences  Json?     @map("preferences")
   lastLogin    DateTime? @map("last_login")
 
-  jobs       Job[]
+  jobs      Job[]
   libraries Library[]
   loans     Loan[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  roles UserRole[]
+
+  @@index([email], name: "idx_user_email")
+
+  @@map("users")
+}
+
+enum Role {
+  Admin
+  User
+
+  @@map("roles")
+}
+
+enum Permission {
+  ManageLibraries
+  ManageBooks
+  ManageLoans
+  ManageScans
+  ManageJobs
+  ManageUsers
+  DownloadBooks
+  ViewReports
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id     String @id @default(cuid(2))
+  role   Role   @unique
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  permissions RolePermission[]
+
+  @@unique([userId, role])
+
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid(2))
+  permission   Permission
+  role         Role
+  userRole     UserRole   @relation(fields: [role], references: [role])
+
+  @@unique([role, permission])
+
+  @@map("role_permissions")
 }
 
 model Library {
@@ -46,6 +96,11 @@ model Library {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([hostname], name: "idx_library_hostname")
+  @@index([userId], name: "idx_library_user_id")
+
+  @@map("libraries")
 }
 
 // create a new model to act as a bridge between a book and a library
@@ -61,49 +116,110 @@ model Loan {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  user      User       @relation(fields: [userId], references: [id])
-  book      LibraryItem       @relation(fields: [bookId], references: [id])
-  library   Library    @relation(fields: [libraryId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+  book      LibraryItem @relation(fields: [bookId], references: [id])
+  library   Library     @relation(fields: [libraryId], references: [id])
   loanFiles LoanFile[]
+
+  @@index([bookId], name: "idx_loan_book_id")
+  @@index([libraryId], name: "idx_loan_library_id")
+  @@index([userId], name: "idx_loan_user_id")
+
+  @@map("loans")
 }
 
 enum LibraryItemType {
-  Magazine
   Audiobook
   Ebook
+  Magazine
+
+  @@map("library_item_type")
 }
 
 model LibraryItem {
   id String @id @default(cuid(2))
 
-  // Total file(s) size in kb for either audiobook or ebook
-  authors     String[] @map("authors")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  chapters    Json?    @map("chapters")
-  coverUrl    String?  @map("cover_url")
+  title       String
   description String?
-  duration    Int?
-  fileSize    Int?     @map("file_size")
-  isbn        String?  @map("isbn")
-
-  language String? @map("language")
-
-  narrators   String[]  @map("narrators")
-  overdriveId String    @map("overdrive_id")
+  coverUrl    String?  @map("cover_url")
+  publisher   String?
   releaseDate DateTime? @map("release_date")
-  publisher   String?   @map("publisher")
-  series      String[]  @map("series")
-  seriesIndex String?   @map("series_index")
+  subjects    String[]
+  language    String?
+  overdriveId String   @map("overdrive_id")
+  type        LibraryItemType
 
-  subjects String[] @map("subjects")
-  subtitle String?  @map("subtitle")
-  title    String
-
-  type      LibraryItemType
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  book     Book?
+  magazine Magazine?
 
   loans     Loan[]
   libraries Library[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([title], name: "idx_library_item_title")
+  @@index([type], name: "idx_library_item_type")
+  @@index([overdriveId], name: "idx_library_item_overdrive_id")
+
+  @@map("library_items")
+}
+
+model Book {
+  id          String @id @default(cuid(2))
+  authors     String[]
+  chapters    Json?
+  series      String[]
+  seriesIndex String?
+  isbn        String?
+
+  libraryItemId String      @unique @map("library_item_id")
+  libraryItem   LibraryItem @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+
+  audiobook Audiobook?
+  ebook     Ebook?
+
+  @@index([libraryItemId], name: "idx_book_library_item_id")
+  @@index([isbn], name: "idx_book_isbn")
+
+  @@map("books")
+}
+
+model Audiobook {
+  id        String @id @default(cuid(2))
+  narrators String[]
+  duration  Int
+
+  bookId String @unique @map("book_id")
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId], name: "idx_audiobook_book_id")
+
+  @@map("audiobooks")
+}
+
+model Ebook {
+  id String @id @default(cuid(2))
+  pageCount Int? @map("page_count")
+
+  bookId String @unique @map("book_id")
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId], name: "idx_ebook_book_id")
+
+  @@map("ebooks")
+}
+
+model Magazine {
+  id String @id @default(cuid(2))
+  issue String? @map("issue")
+
+  libraryItemId String      @unique @map("library_item_id")
+  libraryItem   LibraryItem @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+
+  @@index([libraryItemId], name: "idx_magazine_library_item_id")
+
+  @@map("magazines")
 }
 
 enum LoanFileStatus {
@@ -112,56 +228,87 @@ enum LoanFileStatus {
   Processing
   Downloaded
   Failed
+
+  @@map("loan_file_status")
 }
 
 model LoanFile {
-  id        String   @id @default(cuid(2))
+  id       String @id @default(cuid(2))
+  filePath String @map("file_path")
+  fileName String @map("file_name")
 
-  filePath  String   @map("file_path")
-  fileName  String   @map("file_name")
+  duration Int?
 
-  duration  Int?
+  status LoanFileStatus @default(Processing) @map("status")
 
-  status    LoanFileStatus @default(Processing) @map("status")
+  loanId String @map("loan_id")
+  loan   Loan   @relation(fields: [loanId], references: [id])
 
-  loanId    String   @map("loan_id")
-  loan      Loan     @relation(fields: [loanId], references: [id])
-
-  fileSize  Int?     @map("file_size")
-  fileType  String?  @map("file_type")
-  fileUrl   String?  @map("file_url")
-  metadata  Json?
+  fileSize Int?    @map("file_size")
+  fileType String? @map("file_type")
+  fileUrl  String? @map("file_url")
+  metadata Json?
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([loanId], name: "idx_loan_file_loan_id")
+  @@index([filePath], name: "idx_loan_file_file_path")
+
+  @@map("loan_files")
+}
+
+enum ScanStatus {
+  Success
+  InProgress
+  Failed
+  Cancelled
+
+  @@map("scan_status")
 }
 
 model ScanHistory {
   id        String   @id @default(cuid(2))
   timestamp DateTime @default(now()) @db.Timestamptz(3)
-  status    String
+  status    ScanStatus
 
   libraryId String  @map("library_id")
   library   Library @relation(fields: [libraryId], references: [id])
+
+  scanData  Json?   @map("scan_data")
+  error     String? @map("error")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([libraryId], name: "idx_scan_history_library_id")
+  @@index([timestamp], name: "idx_scan_history_timestamp")
+
+  @@map("scan_history")
 }
 
 model Job {
-  id   String @id @default(cuid(2))
-  type String
-
+  id     String @id @default(cuid(2))
+  type   String
   status JobStatus @default(Pending) @map("status")
 
   userId String? @map("user_id")
   user   User?   @relation(fields: [userId], references: [id])
 
-  payload   Json?
-  priority  Int
+  payload  Json?
+  priority Int
 
   library   Library? @relation(fields: [libraryId], references: [id])
   libraryId String?
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([userId], name: "idx_job_user_id")
+  @@index([libraryId], name: "idx_job_library_id")
+  @@index([type], name: "idx_job_type")
+
+  @@map("jobs")
 }
 
 enum JobStatus {
@@ -169,4 +316,6 @@ enum JobStatus {
   InProgress
   Completed
   Failed
+
+  @@map("job_status")
 }
