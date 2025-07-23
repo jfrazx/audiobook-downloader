@@ -15,7 +15,6 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Manual auth actions
     setCredentials: (state, action: PayloadAction<LoginResponse>) => {
       const { user, access_token } = action.payload;
       state.user = user;
@@ -24,7 +23,6 @@ const authSlice = createSlice({
       state.error = null;
       state.lastAuthCheck = Date.now();
 
-      // Persist to localStorage
       try {
         localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, access_token);
         localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
@@ -40,7 +38,6 @@ const authSlice = createSlice({
       state.error = null;
       state.lastAuthCheck = null;
 
-      // Clear from localStorage
       try {
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
         localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
@@ -67,7 +64,6 @@ const authSlice = createSlice({
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
 
-        // Update localStorage
         try {
           localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(state.user));
         } catch (error) {
@@ -76,7 +72,6 @@ const authSlice = createSlice({
       }
     },
 
-    // Restore auth from localStorage on app init
     restoreAuth: (state) => {
       try {
         const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
@@ -91,7 +86,6 @@ const authSlice = createSlice({
         }
       } catch (error) {
         console.error('Failed to restore auth state:', error);
-        // Clear potentially corrupted data
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
         localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
       }
@@ -112,7 +106,6 @@ const authSlice = createSlice({
         state.error = null;
         state.lastAuthCheck = Date.now();
 
-        // Persist to localStorage
         try {
           localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, access_token);
           localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
@@ -128,7 +121,6 @@ const authSlice = createSlice({
         state.token = null;
       })
 
-      // Auth status check endpoints
       .addMatcher(authApi.endpoints.getStatus.matchPending, (state) => {
         state.isLoading = true;
       })
@@ -138,7 +130,6 @@ const authSlice = createSlice({
           state.isAuthenticated = true;
           state.lastAuthCheck = Date.now();
         } else {
-          // User is not authenticated according to server
           state.user = null;
           state.token = null;
           state.isAuthenticated = false;
@@ -149,7 +140,6 @@ const authSlice = createSlice({
       .addMatcher(authApi.endpoints.getStatus.matchRejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Failed to check auth status';
-        // On auth status failure, clear local auth state
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
@@ -176,7 +166,6 @@ export const {
 
 export default authSlice.reducer;
 
-// Selectors
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;
 export const selectCurrentToken = (state: { auth: AuthState }) => state.auth.token;
 export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;

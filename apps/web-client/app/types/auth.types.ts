@@ -31,7 +31,6 @@ export interface AuthState {
   lastAuthCheck: number | null;
 }
 
-// Form validation types
 export interface FormValidationErrors {
   username?: string;
   password?: string;
@@ -53,7 +52,6 @@ export interface LoginFormState {
   validationErrors: FormValidationErrors;
 }
 
-// API Error types
 export interface AuthApiError {
   status: number;
   statusText: string;
@@ -68,7 +66,6 @@ export interface ValidationError {
   code: string;
 }
 
-// API Response types
 export interface ApiResponse<T> {
   data: T;
   success: boolean;
@@ -82,7 +79,6 @@ export interface AuthStatusResponse {
   expiresAt?: string;
 }
 
-// Component prop types
 export interface LoginFormProps {
   onSuccess?: (user: User) => void;
   onError?: (error: AuthApiError) => void;
@@ -97,7 +93,6 @@ export interface WelcomeProps {
   className?: string;
 }
 
-// Auth context types (if using React Context)
 export interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
@@ -108,7 +103,6 @@ export interface AuthContextValue {
   error: string | null;
 }
 
-// Route protection types
 export interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredPermissions?: string[];
@@ -136,7 +130,6 @@ export interface UseAuthReturn {
   checkAuthStatus: () => Promise<AuthStatusResponse>;
 }
 
-// Form validation rules
 export interface ValidationRule {
   required?: boolean;
   minLength?: number;
@@ -150,7 +143,6 @@ export interface ValidationRules {
   password: ValidationRule;
 }
 
-// Constants
 export const AUTH_STORAGE_KEYS = {
   TOKEN: 'auth_token',
   USER: 'auth_user',
@@ -164,14 +156,4 @@ export const AUTH_ERRORS = {
   TOKEN_EXPIRED: 'Session expired. Please log in again.',
   UNAUTHORIZED: 'You are not authorized to access this resource',
   VALIDATION_FAILED: 'Please check your input and try again',
-} as const;
-
-export const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
 } as const;

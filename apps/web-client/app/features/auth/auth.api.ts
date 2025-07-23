@@ -1,13 +1,13 @@
 import { createApi, fetchBaseQuery, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import type { RootState } from '../../store';
 import { Http } from '@status/codes';
 import type {
+  AuthApiError,
+  AuthStatusResponse,
   LoginCredentials,
   LoginResponse,
-  AuthStatusResponse,
   User,
-  AuthApiError,
 } from '../../types/auth.types';
-import type { RootState } from '../../store';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: '/api/auth/',
@@ -35,7 +35,6 @@ export const authApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Auth', 'User'],
   endpoints: (builder) => ({
-    // Login mutation
     login: builder.mutation<LoginResponse, LoginCredentials>({
       query: (credentials) => ({
         url: 'login',
@@ -84,7 +83,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // Logout mutation
     logout: builder.mutation<void, void>({
       query: () => ({
         url: 'logout',

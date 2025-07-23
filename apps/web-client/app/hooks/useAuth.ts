@@ -143,7 +143,6 @@ export function useAuth(): UseAuthReturn {
       await checkAuthStatus();
     } catch (error) {
       console.error('Auth refresh failed:', error);
-      // On refresh failure, logout user
       await logout();
     }
   }, [isAuthenticated, checkAuthStatus, logout]);
@@ -180,7 +179,6 @@ export function useRequireAuth(redirectTo = '/login') {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to login if not authenticated (after loading is complete)
   if (!isLoading && !isAuthenticated) {
     navigate(redirectTo);
     return false;

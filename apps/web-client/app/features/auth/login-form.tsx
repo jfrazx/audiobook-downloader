@@ -4,6 +4,7 @@ import { Eye, EyeOff, User, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { useLoginMutation } from './auth.api';
 import { useAppSelector } from '../../hooks/redux';
 import { selectIsAuthenticated } from './auth.slice';
+import { Http } from '@status/codes';
 import type {
   LoginFormState,
   FormValidationErrors,
@@ -54,14 +55,12 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     validationErrors: {},
   });
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate(redirectTo);
     }
   }, [isAuthenticated, navigate, redirectTo]);
 
-  // Field validation function
   const validateField = useCallback((field: keyof LoginCredentials, value: string): string | undefined => {
     const rules = validationRules[field];
 
@@ -77,7 +76,6 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
       return `${field.charAt(0).toUpperCase() + field.slice(1)} must be less than ${rules.maxLength} characters`;
     }
 
-    // Additional password validation
     if (field === 'password' && value && value.length < 3) {
       return 'Password is too short';
     }
@@ -85,19 +83,16 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     return undefined;
   }, []);
 
-  // Form validation
   const validateForm = useCallback((): boolean => {
     const errors: FormValidationErrors = {};
     let isValid = true;
 
-    // Validate username
     const usernameError = validateField('username', formState.username.value);
     if (usernameError) {
       errors.username = usernameError;
       isValid = false;
     }
 
-    // Validate password
     const passwordError = validateField('password', formState.password.value);
     if (passwordError) {
       errors.password = passwordError;
@@ -114,7 +109,6 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     return isValid;
   }, [formState.username.value, formState.password.value, validateField]);
 
-  // Handle field changes
   const handleFieldChange = useCallback(
     (field: keyof LoginCredentials, value: string) => {
       setFormState((prev) => {
@@ -127,7 +121,6 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
             touched: true,
             valid: !error,
           },
-          // Clear validation errors when user starts typing
           validationErrors: {
             ...prev.validationErrors,
             [field]: undefined,
@@ -176,7 +169,6 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     navigate,
   ]);
 
-  // Handle Enter key press
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -186,7 +178,6 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     [handleSubmit],
   );
 
-  // Toggle password visibility
   const togglePasswordVisibility = useCallback(() => {
     setFormState((prev) => ({
       ...prev,
@@ -198,13 +189,13 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
   const getErrorMessage = useCallback((): string | null => {
     if (error && 'status' in error) {
       switch (error.status) {
-        case 401:
+        case Http.Unauthorized:
           return 'Invalid username or password';
-        case 429:
+        case Http.TooManyRequests:
           return 'Too many login attempts. Please try again later.';
-        case 500:
-        case 502:
-        case 503:
+        case Http.InternalServerError:
+        case Http.BadGateway:
+        case Http.ServiceUnavailable:
           return 'Server error. Please try again later.';
         default:
           return 'Login failed. Please try again.';
@@ -257,7 +248,7 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
                   autoComplete="username"
                   value={formState.username.value}
                   onChange={(e) => handleFieldChange('username', e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   className={`
                     block w-full pl-10 pr-3 py-3 border rounded-lg bg-white/5 text-white placeholder-gray-400
                     focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
@@ -291,7 +282,7 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
                   autoComplete="current-password"
                   value={formState.password.value}
                   onChange={(e) => handleFieldChange('password', e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   className={`
                     block w-full pl-10 pr-12 py-3 border rounded-lg bg-white/5 text-white placeholder-gray-400
                     focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
