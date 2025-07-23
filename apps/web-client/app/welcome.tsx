@@ -1,439 +1,193 @@
-import LoginPage from './routes/login';
+import { Link } from 'react-router';
+import { BookOpen, Download, Activity, Users, LogOut } from 'lucide-react';
+import { useAuth } from './hooks/useAuth';
+import type { WelcomeProps } from './types/auth.types';
 
-export default function Welcome({ title }: { title: string }) {
+export default function Welcome({
+  title,
+  subtitle = 'Download, organize, and enjoy your favorite audiobooks',
+  showLoginButton = true,
+  className = '',
+}: WelcomeProps) {
+  const { isAuthenticated, user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
-    <>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-    html {
-      -webkit-text-size-adjust: 100%;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-      'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
-      'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-      'Noto Color Emoji';
-      line-height: 1.5;
-      tab-size: 4;
-      scroll-behavior: smooth;
-    }
-    body {
-      font-family: inherit;
-      line-height: inherit;
-      margin: 0;
-    }
-    h1,
-    h2,
-    p,
-    pre {
-      margin: 0;
-    }
-    *,
-    ::before,
-    ::after {
-      box-sizing: border-box;
-      border-width: 0;
-      border-style: solid;
-      border-color: currentColor;
-    }
-    h1,
-    h2 {
-      font-size: inherit;
-      font-weight: inherit;
-    }
-    a {
-      color: inherit;
-      text-decoration: inherit;
-    }
-    pre {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      'Liberation Mono', 'Courier New', monospace;
-    }
-    svg {
-      display: block;
-      vertical-align: middle;
-      shape-rendering: auto;
-      text-rendering: optimizeLegibility;
-    }
-    pre {
-      background-color: rgba(55, 65, 81, 1);
-      border-radius: 0.25rem;
-      color: rgba(229, 231, 235, 1);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      'Liberation Mono', 'Courier New', monospace;
-      overflow: auto;
-      padding: 0.5rem 0.75rem;
-    }
-
-    .shadow {
-      box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    .rounded {
-      border-radius: 1.5rem;
-    }
-    .wrapper {
-      width: 100%;
-    }
-    .container {
-      margin-left: auto;
-      margin-right: auto;
-      max-width: 768px;
-      padding-bottom: 3rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-      color: rgba(55, 65, 81, 1);
-      width: 100%;
-    }
-    #welcome {
-      margin-top: 2.5rem;
-    }
-    #welcome h1 {
-      font-size: 3rem;
-      font-weight: 500;
-      letter-spacing: -0.025em;
-      line-height: 1;
-    }
-    #welcome span {
-      display: block;
-      font-size: 1.875rem;
-      font-weight: 300;
-      line-height: 2.25rem;
-      margin-bottom: 0.5rem;
-    }
-    #hero {
-      align-items: center;
-      background-color: hsla(214, 62%, 21%, 1);
-      border: none;
-      box-sizing: border-box;
-      color: rgba(55, 65, 81, 1);
-      display: grid;
-      grid-template-columns: 1fr;
-      margin-top: 3.5rem;
-    }
-    #hero .text-container {
-      color: rgba(255, 255, 255, 1);
-      padding: 3rem 2rem;
-    }
-    #hero .text-container h2 {
-      font-size: 1.5rem;
-      line-height: 2rem;
-      position: relative;
-    }
-    #hero .text-container h2 svg {
-      color: hsla(162, 47%, 50%, 1);
-      height: 2rem;
-      left: -0.25rem;
-      position: absolute;
-      top: 0;
-      width: 2rem;
-    }
-    #hero .text-container h2 span {
-      margin-left: 2.5rem;
-    }
-    #hero .text-container a {
-      background-color: rgba(255, 255, 255, 1);
-      border-radius: 0.75rem;
-      color: rgba(55, 65, 81, 1);
-      display: inline-block;
-      margin-top: 1.5rem;
-      padding: 1rem 2rem;
-      text-decoration: inherit;
-    }
-    #hero .logo-container {
-      display: none;
-      justify-content: center;
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-    #hero .logo-container svg {
-      color: rgba(255, 255, 255, 1);
-      width: 66.666667%;
-    }
-    #middle-content {
-      align-items: flex-start;
-      display: grid;
-      grid-template-columns: 1fr;
-      margin-top: 3.5rem;
-    }
-
-    #middle-content #middle-content-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-    #learning-materials {
-      padding: 2.5rem 2rem;
-    }
-    #learning-materials h2 {
-      font-weight: 500;
-      font-size: 1.25rem;
-      letter-spacing: -0.025em;
-      line-height: 1.75rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-    .list-item-link {
-      align-items: center;
-      border-radius: 0.75rem;
-      display: flex;
-      margin-top: 1rem;
-      padding: 1rem;
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-      width: 100%;
-    }
-    .list-item-link svg:first-child {
-      margin-right: 1rem;
-      height: 1.5rem;
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-      width: 1.5rem;
-    }
-    .list-item-link > span {
-      flex-grow: 1;
-      font-weight: 400;
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .list-item-link > span > span {
-      color: rgba(107, 114, 128, 1);
-      display: block;
-      flex-grow: 1;
-      font-size: 0.75rem;
-      font-weight: 300;
-      line-height: 1rem;
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .list-item-link svg:last-child {
-      height: 1rem;
-      transition-property: all;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-      width: 1rem;
-    }
-    .list-item-link:hover {
-      color: rgba(255, 255, 255, 1);
-      background-color: hsla(162, 55%, 33%, 1);
-    }
-    .list-item-link:hover > span {}
-    .list-item-link:hover > span > span {
-      color: rgba(243, 244, 246, 1);
-    }
-    .list-item-link:hover svg:last-child {
-      transform: translateX(0.25rem);
-    }
-    #other-links {}
-    .button-pill {
-      padding: 1.5rem 2rem;
-      margin-bottom: 2rem;
-      transition-duration: 300ms;
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      align-items: center;
-      display: flex;
-    }
-    .button-pill svg {
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-      flex-shrink: 0;
-      width: 3rem;
-    }
-    .button-pill > span {
-      letter-spacing: -0.025em;
-      font-weight: 400;
-      font-size: 1.125rem;
-      line-height: 1.75rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-    .button-pill span span {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 300;
-      line-height: 1.25rem;
-    }
-    .button-pill:hover svg,
-    .button-pill:hover {
-      color: rgba(255, 255, 255, 1) !important;
-    }
-    #nx-console:hover {
-      background-color: rgba(0, 122, 204, 1);
-    }
-    #nx-console svg {
-      color: rgba(0, 122, 204, 1);
-    }
-    #nx-console-jetbrains {
-      margin-top: 2rem;
-    }
-    #nx-console-jetbrains:hover {
-      background-color: rgba(255, 49, 140, 1);
-    }
-    #nx-console-jetbrains svg {
-      color: rgba(255, 49, 140, 1);
-    }
-    #nx-repo:hover {
-      background-color: rgba(24, 23, 23, 1);
-    }
-    #nx-repo svg {
-      color: rgba(24, 23, 23, 1);
-    }
-    #nx-cloud {
-      margin-bottom: 2rem;
-      margin-top: 2rem;
-      padding: 2.5rem 2rem;
-    }
-    #nx-cloud > div {
-      align-items: center;
-      display: flex;
-    }
-    #nx-cloud > div svg {
-      border-radius: 0.375rem;
-      flex-shrink: 0;
-      width: 3rem;
-    }
-    #nx-cloud > div h2 {
-      font-size: 1.125rem;
-      font-weight: 400;
-      letter-spacing: -0.025em;
-      line-height: 1.75rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-    #nx-cloud > div h2 span {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 300;
-      line-height: 1.25rem;
-    }
-    #nx-cloud p {
-      font-size: 1rem;
-      line-height: 1.5rem;
-      margin-top: 1rem;
-    }
-    #nx-cloud pre {
-      margin-top: 1rem;
-    }
-    #nx-cloud a {
-      color: rgba(107, 114, 128, 1);
-      display: block;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      margin-top: 1.5rem;
-      text-align: right;
-    }
-    #nx-cloud a:hover {
-      text-decoration: underline;
-    }
-    #commands {
-      padding: 2.5rem 2rem;
-      margin-top: 3.5rem;
-    }
-    #commands h2 {
-      font-size: 1.25rem;
-      font-weight: 400;
-      letter-spacing: -0.025em;
-      line-height: 1.75rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-    #commands p {
-      font-size: 1rem;
-      font-weight: 300;
-      line-height: 1.5rem;
-      margin-top: 1rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-    details {
-      align-items: center;
-      display: flex;
-      margin-top: 1rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-      width: 100%;
-    }
-    details pre > span {
-      color: rgba(181, 181, 181, 1);
-      display: block;
-    }
-    summary {
-      border-radius: 0.5rem;
-      display: flex;
-      font-weight: 400;
-      padding: 0.5rem;
-      cursor: pointer;
-      transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform, filter, backdrop-filter,
-      -webkit-backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-    }
-    summary:hover {
-      background-color: rgba(243, 244, 246, 1);
-    }
-    summary svg {
-      height: 1.5rem;
-      margin-right: 1rem;
-      width: 1.5rem;
-    }
-    #love {
-      color: rgba(107, 114, 128, 1);
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      margin-top: 3.5rem;
-      opacity: 0.6;
-      text-align: center;
-    }
-    #love svg {
-      color: rgba(252, 165, 165, 1);
-      width: 1.25rem;
-      height: 1.25rem;
-      display: inline;
-      margin-top: -0.25rem;
-    }
-    @media screen and (min-width: 768px) {
-      #hero {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      #hero .logo-container {
-        display: flex;
-      }
-      #middle-content {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 4rem;
-      }
-    }
-          `,
-        }}
-      />
-      <div className="wrapper">
-        <div className="container">
-          <div id="welcome">
-            <h1>
-              <span> Hello there, </span>
-              Welcome {title} 👋
-            </h1>
+    <div
+      className={`min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 ${className}`}
+    >
+      <div className="container mx-auto px-4 py-16 max-w-4xl">
+        {/* Auth Status Header */}
+        {isAuthenticated && user && (
+          <div className="flex justify-between items-center mb-8 p-4 bg-white/50 dark:bg-slate-800/50 rounded-lg backdrop-blur-sm">
+            <div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Welcome back,</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                {user.displayName || user.username}
+              </p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="
+                flex items-center px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400
+                hover:text-slate-900 dark:hover:text-white transition-colors duration-200
+              "
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </button>
           </div>
+        )}
 
-          <LoginPage />
+        {/* Main Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <span className="block text-2xl md:text-3xl font-light text-slate-600 dark:text-slate-400 mb-2">
+              Hello there,
+            </span>
+            Welcome to {title} 👋
+          </h1>
+          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            {subtitle}
+          </p>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <FeatureCard
+            icon={<BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
+            title="Library Management"
+            description="Connect and manage multiple library accounts in one place."
+            bgColor="bg-blue-100 dark:bg-blue-900"
+          />
+
+          <FeatureCard
+            icon={<Download className="h-6 w-6 text-green-600 dark:text-green-400" />}
+            title="Automated Downloads"
+            description="Automatically download and process your audiobook loans."
+            bgColor="bg-green-100 dark:bg-green-900"
+          />
+
+          <FeatureCard
+            icon={<Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
+            title="Activity Monitoring"
+            description="Track downloads, scans, and library activity in real-time."
+            bgColor="bg-purple-100 dark:bg-purple-900"
+          />
+        </div>
+
+        {/* CTA Section */}
+        {!isAuthenticated && showLoginButton && (
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl shadow-2xl p-8 md:p-12 text-center text-white mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Get Started?</h2>
+            <p className="text-purple-100 mb-8 text-lg">
+              Sign in to access your audiobook library and start managing your collection.
+            </p>
+            <Link
+              to="/login"
+              className="
+                inline-flex items-center px-8 py-4 bg-white text-purple-600 font-semibold
+                rounded-xl hover:bg-purple-50 transition-colors duration-200
+                transform hover:scale-105 active:scale-95
+              "
+            >
+              <Users className="h-5 w-5 mr-2" />
+              Sign In Now
+            </Link>
+          </div>
+        )}
+
+        {/* Dashboard Preview for Authenticated Users */}
+        {isAuthenticated && (
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8 md:p-12 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900 dark:text-white">
+              Your Dashboard
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
+              Manage your libraries, view recent activity, and access your audiobook collection.
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <DashboardCard
+                title="Libraries"
+                value="2"
+                description="Connected accounts"
+                color="text-blue-600 dark:text-blue-400"
+              />
+              <DashboardCard
+                title="Downloads"
+                value="12"
+                description="This month"
+                color="text-green-600 dark:text-green-400"
+              />
+              <DashboardCard
+                title="Scans"
+                value="3"
+                description="Recent activity"
+                color="text-purple-600 dark:text-purple-400"
+              />
+            </div>
+
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Dashboard functionality coming in Phase 2
+            </p>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="text-center mt-16">
+          <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
+            Made with
+            <span className="mx-1 text-red-500" role="img" aria-label="heart">
+              ♥
+            </span>
+            for audiobook enthusiasts
+          </p>
         </div>
       </div>
-    </>
+    </div>
+  );
+}
+
+// Feature Card Component
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  bgColor: string;
+}
+
+function FeatureCard({ icon, title, description, bgColor }: FeatureCardProps) {
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+      <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center mb-4`}>{icon}</div>
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{title}</h3>
+      <p className="text-slate-600 dark:text-slate-400 text-sm">{description}</p>
+    </div>
+  );
+}
+
+// Dashboard Card Component
+interface DashboardCardProps {
+  title: string;
+  value: string;
+  description: string;
+  color: string;
+}
+
+function DashboardCard({ title, value, description, color }: DashboardCardProps) {
+  return (
+    <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4">
+      <h4 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{title}</h4>
+      <p className={`text-2xl font-bold ${color} mb-1`}>{value}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+    </div>
   );
 }
