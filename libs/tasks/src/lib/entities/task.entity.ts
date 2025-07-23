@@ -26,7 +26,7 @@ export class Task<Payload = Record<string, unknown>> {
   payload: Payload;
 
   @Prop({ type: String, enum: Status, default: Status.Pending })
-  status: Status;
+  status: `${Status}`;
 
   @Prop({ type: String })
   topic: string;

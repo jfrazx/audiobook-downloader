@@ -11,6 +11,7 @@ import { Observable, of } from 'rxjs';
 
 @Injectable()
 export class DownloadWatcherInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(DownloadWatcherInterceptor.name);
   private readonly topics: string[] = [Topic.DownloadFile, Topic.DownloadImage];
 
   private readonly downloads = wrapDefaults({
@@ -48,16 +49,16 @@ export class DownloadWatcherInterceptor implements NestInterceptor {
     const taskIds = <Set<string>>this.downloads.get(parentId);
     taskIds.delete(taskId);
 
-    Logger.debug(`Download task ID: ${taskId} has completed`);
-    Logger.debug(`Remaining download tasks for parent task ID: ${parentId}: ${taskIds.size}`);
+    this.logger.debug(`Download task ID: ${taskId} has completed`);
+    this.logger.debug(`Remaining download tasks for parent task ID: ${parentId}: ${taskIds.size}`);
 
     if (taskIds.size === 0) {
-      Logger.debug(`All downloads for parent task ID: ${parentId} have completed`);
+      this.logger.debug(`All downloads for parent task ID: ${parentId} have completed`);
       this.downloads.delete(parentId);
 
       return this.clientProxy.send<Task<Payloads.ProcessODM>>(TaskEvent.FindOne, { _id: parentId }).pipe(
         tap((task) =>
-          Logger.debug(
+          this.logger.debug(
             `Task ${task._id} has downloaded ${task.payload.downloads.complete} files of ${task.payload.downloads.files_count}`,
           ),
         ),

@@ -13,6 +13,8 @@ import { of } from 'rxjs';
 
 @Controller()
 export class ODMTaskController {
+  private readonly logger = new Logger(ODMTaskController.name);
+
   constructor(
     @Inject(CLIENT_PROXY) private readonly clientProxy: ClientProxy,
     private readonly taskProcessingService: TaskProcessingService,
@@ -22,7 +24,7 @@ export class ODMTaskController {
   @UseInterceptors(DownloadWatcherInterceptor, ConcurrencyInterceptor)
   @EventPattern(Message.ODMProcess)
   taskProcessor(@Payload() task: Task) {
-    Logger.log(`Processing task: ${task.topic}`);
+    this.logger.log(`Processing task: ${task.topic}`);
 
     return of(task).pipe(
       tap((task) => {
@@ -38,7 +40,7 @@ export class ODMTaskController {
       ),
       mergeMap((task) => this.taskAssignment(task)),
       catchError((error) => {
-        Logger.error(error.message);
+        this.logger.error(error.message);
 
         return this.clientProxy.emit<Task>(TaskEvent.Update, {
           status: Status.Failed,

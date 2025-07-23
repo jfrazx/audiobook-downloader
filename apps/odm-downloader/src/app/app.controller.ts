@@ -13,11 +13,13 @@ import { from } from 'rxjs';
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(@Inject(CLIENT_PROXY) private readonly clientProxy: ClientProxy) {}
 
   @EventPattern(Message.ODMReceived)
   receiveOdmFile(file: Express.Multer.File) {
-    Logger.log(`Received ODM file: ${file.originalname}`);
+    this.logger.log(`Received ODM file: ${file.originalname}`);
 
     const basename = path.join(path.basename(file.originalname, path.extname(file.originalname)));
     const directoryName = basename === 'multipart' ? crypto.randomBytes(16).toString('hex') : basename;

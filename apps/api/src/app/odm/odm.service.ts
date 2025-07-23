@@ -26,7 +26,7 @@ export class OdmService {
     Logger.log(`Sending ODM file: ${file.originalname}`);
 
     return from(fs.promises.readFile(file.path)).pipe(
-      map((buffer: Buffer) => ({ buffer, ...file })),
+      map((buffer: Buffer) => ({ ...file, buffer })),
       mergeMap((file) => this.clientProxy.emit(Message.ODMReceived, file)),
       mergeMap(() => fs.promises.unlink(file.path)),
     );

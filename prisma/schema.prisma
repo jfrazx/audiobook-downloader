@@ -1,0 +1,321 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(cuid(2))
+
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  preferences  Json?     @map("preferences")
+  lastLogin    DateTime? @map("last_login")
+
+  jobs      Job[]
+  libraries Library[]
+  loans     Loan[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  roles UserRole[]
+
+  @@index([email], name: "idx_user_email")
+
+  @@map("users")
+}
+
+enum Role {
+  Admin
+  User
+
+  @@map("roles")
+}
+
+enum Permission {
+  ManageLibraries
+  ManageBooks
+  ManageLoans
+  ManageScans
+  ManageJobs
+  ManageUsers
+  DownloadBooks
+  ViewReports
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id     String @id @default(cuid(2))
+  role   Role   @unique
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  permissions RolePermission[]
+
+  @@unique([userId, role])
+
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid(2))
+  permission   Permission
+  role         Role
+  userRole     UserRole   @relation(fields: [role], references: [role])
+
+  @@unique([role, permission])
+
+  @@map("role_permissions")
+}
+
+model Library {
+  id         String  @id @default(cuid(2))
+  hostname   String
+  cardNumber String  @map("card_number")
+  pin        String?
+
+  // Library dropdown selector
+  librarySelector String? @map("library_selector")
+  preferences     Json
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  jobs  Job[]
+  books LibraryItem[]
+  loans Loan[]
+  scans ScanHistory[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([hostname], name: "idx_library_hostname")
+  @@index([userId], name: "idx_library_user_id")
+
+  @@map("libraries")
+}
+
+// create a new model to act as a bridge between a book and a library
+// this will allow us to have multiple libraries with the same book
+model Loan {
+  id        String   @id @default(cuid(2))
+  bookId    String   @map("book_id")
+  libraryId String   @map("library_id")
+  userId    String   @map("user_id")
+  dueDate   DateTime @map("due_date")
+  returned  Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user      User        @relation(fields: [userId], references: [id])
+  book      LibraryItem @relation(fields: [bookId], references: [id])
+  library   Library     @relation(fields: [libraryId], references: [id])
+  loanFiles LoanFile[]
+
+  @@index([bookId], name: "idx_loan_book_id")
+  @@index([libraryId], name: "idx_loan_library_id")
+  @@index([userId], name: "idx_loan_user_id")
+
+  @@map("loans")
+}
+
+enum LibraryItemType {
+  Audiobook
+  Ebook
+  Magazine
+
+  @@map("library_item_type")
+}
+
+model LibraryItem {
+  id String @id @default(cuid(2))
+
+  title       String
+  description String?
+  coverUrl    String?  @map("cover_url")
+  publisher   String?
+  releaseDate DateTime? @map("release_date")
+  subjects    String[]
+  language    String?
+  overdriveId String   @map("overdrive_id")
+  type        LibraryItemType
+
+  book     Book?
+  magazine Magazine?
+
+  loans     Loan[]
+  libraries Library[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([title], name: "idx_library_item_title")
+  @@index([type], name: "idx_library_item_type")
+  @@index([overdriveId], name: "idx_library_item_overdrive_id")
+
+  @@map("library_items")
+}
+
+model Book {
+  id          String @id @default(cuid(2))
+  authors     String[]
+  chapters    Json?
+  series      String[]
+  seriesIndex String?
+  isbn        String?
+
+  libraryItemId String      @unique @map("library_item_id")
+  libraryItem   LibraryItem @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+
+  audiobook Audiobook?
+  ebook     Ebook?
+
+  @@index([libraryItemId], name: "idx_book_library_item_id")
+  @@index([isbn], name: "idx_book_isbn")
+
+  @@map("books")
+}
+
+model Audiobook {
+  id        String @id @default(cuid(2))
+  narrators String[]
+  duration  Int
+
+  bookId String @unique @map("book_id")
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId], name: "idx_audiobook_book_id")
+
+  @@map("audiobooks")
+}
+
+model Ebook {
+  id String @id @default(cuid(2))
+  pageCount Int? @map("page_count")
+
+  bookId String @unique @map("book_id")
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId], name: "idx_ebook_book_id")
+
+  @@map("ebooks")
+}
+
+model Magazine {
+  id String @id @default(cuid(2))
+  issue String? @map("issue")
+
+  libraryItemId String      @unique @map("library_item_id")
+  libraryItem   LibraryItem @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+
+  @@index([libraryItemId], name: "idx_magazine_library_item_id")
+
+  @@map("magazines")
+}
+
+enum LoanFileStatus {
+  Skipped
+  Pending
+  Processing
+  Downloaded
+  Failed
+
+  @@map("loan_file_status")
+}
+
+model LoanFile {
+  id       String @id @default(cuid(2))
+  filePath String @map("file_path")
+  fileName String @map("file_name")
+
+  duration Int?
+
+  status LoanFileStatus @default(Processing) @map("status")
+
+  loanId String @map("loan_id")
+  loan   Loan   @relation(fields: [loanId], references: [id])
+
+  fileSize Int?    @map("file_size")
+  fileType String? @map("file_type")
+  fileUrl  String? @map("file_url")
+  metadata Json?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([loanId], name: "idx_loan_file_loan_id")
+  @@index([filePath], name: "idx_loan_file_file_path")
+
+  @@map("loan_files")
+}
+
+enum ScanStatus {
+  Success
+  InProgress
+  Failed
+  Cancelled
+
+  @@map("scan_status")
+}
+
+model ScanHistory {
+  id        String   @id @default(cuid(2))
+  timestamp DateTime @default(now()) @db.Timestamptz(3)
+  status    ScanStatus
+
+  libraryId String  @map("library_id")
+  library   Library @relation(fields: [libraryId], references: [id])
+
+  scanData  Json?   @map("scan_data")
+  error     String? @map("error")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([libraryId], name: "idx_scan_history_library_id")
+  @@index([timestamp], name: "idx_scan_history_timestamp")
+
+  @@map("scan_history")
+}
+
+model Job {
+  id     String @id @default(cuid(2))
+  type   String
+  status JobStatus @default(Pending) @map("status")
+
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id])
+
+  payload  Json?
+  priority Int
+
+  library   Library? @relation(fields: [libraryId], references: [id])
+  libraryId String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([userId], name: "idx_job_user_id")
+  @@index([libraryId], name: "idx_job_library_id")
+  @@index([type], name: "idx_job_type")
+
+  @@map("jobs")
+}
+
+enum JobStatus {
+  Pending
+  InProgress
+  Completed
+  Failed
+
+  @@map("job_status")
+}

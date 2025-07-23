@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common';
 export class PayloadAssertionService {
   validateProcessODMPayload(value: any): value is Payloads.ProcessODM {
     return (
-      this.validateODM(value) &&
       typeof value?.remux_completed === 'boolean' &&
       typeof value.remux.files_completed === 'number' &&
       typeof value.remux.files_total === 'number' &&
@@ -15,14 +14,6 @@ export class PayloadAssertionService {
       typeof value.content_directory === 'string' &&
       Array.isArray(value.file_parts) &&
       Array.isArray(value.images)
-    );
-  }
-
-  private validateODM(value: any) {
-    return (
-      typeof value?.odm?.OverDriveMedia?.License === 'object' &&
-      typeof value.odm.OverDriveMedia.Metadata?.Title === 'string' &&
-      Array.isArray(value.odm.OverDriveMedia.Formats?.Format?.Parts.Part)
     );
   }
 

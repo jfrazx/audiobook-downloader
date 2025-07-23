@@ -6,7 +6,7 @@ import assert from 'node:assert';
 
 @Injectable()
 export class TaskService {
-  constructor(@InjectModel(Task.name) private taskModel: Model<TaskDocument>) {}
+  constructor(@InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>) {}
 
   create<T>(createTaskDto: CreateTaskDto<T>) {
     assert(createTaskDto.status, 'Task status must be provided');

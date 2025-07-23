@@ -17,9 +17,11 @@
   ],
   "words": [
     "AIDEM",
+    "asarray",
     "ascm",
     "audiobook",
     "camelcase",
+    "cuid",
     "Dtos",
     "ELOSNOC",
     "envirator",
@@ -29,14 +31,17 @@
     "ffprobe",
     "filesize",
     "getify",
+    "jfrazx",
     "loglevel",
     "Mikro",
     "nestjs",
     "nostdin",
+    "openidconnect",
     "Parens",
     "remux",
     "Remuxing",
     "SDMI",
+    "Timestamptz",
     "typeorm"
   ]
 }

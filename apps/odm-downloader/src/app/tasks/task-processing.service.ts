@@ -7,14 +7,16 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as Payloads from '../interfaces/payload.interface';
 import type { ObjectId, RootFilterQuery } from 'mongoose';
 import { CLIENT_PROXY, Message } from '@abd/constants';
+import { OdmService } from '../services/odm.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { Topic } from '../constants/topic.enum';
 import { ConfigService } from '@nestjs/config';
-import { OdmService } from '../services/odm.service';
 import assert from 'node:assert';
 
 @Injectable()
 export class TaskProcessingService {
+  private readonly logger = new Logger(TaskProcessingService.name);
+
   constructor(
     @Inject(CLIENT_PROXY) private readonly clientProxy: ClientProxy,
     private readonly configService: ConfigService,
@@ -23,7 +25,7 @@ export class TaskProcessingService {
 
   assemble(task: Task, payload: Payloads.Assemble) {
     assert(task.parent_task_id, 'Parent task ID must be provided');
-    Logger.log(`Assembling task ${task._id} with ${payload.downloads.files_count} files`);
+    this.logger.log(`Assembling task ${task._id} with ${payload.downloads.files_count} files`);
 
     const grouped$ = this.clientProxy
       .send<Task<Payloads.Downloads>[], RootFilterQuery<Task>>(TaskEvent.FindAll, {
@@ -37,7 +39,7 @@ export class TaskProcessingService {
       .pipe(
         tap((tasks) => assert(tasks.length, `No child tasks found for task ${task.parent_task_id} `)),
         tap((tasks) => assert(tasks.length === payload.downloads.files_count, 'Child tasks count mismatch')),
-        tap((tasks) => Logger.log(`Found ${tasks.length} child tasks for task ${task.parent_task_id}`)),
+        tap((tasks) => this.logger.log(`Found ${tasks.length} child tasks for task ${task.parent_task_id}`)),
         mergeMap((tasks) => from(tasks)),
         groupBy((task) => task.topic),
       );
@@ -47,6 +49,7 @@ export class TaskProcessingService {
       mergeMap((group) =>
         group.pipe(
           map<Task<Payloads.FileDownload>, ODMFilePart>((task) => ({
+            total_parts: payload.downloads.audio_files_count,
             part: task.payload.part,
             file_path: task.payload.file_path,
           })),
@@ -93,7 +96,7 @@ export class TaskProcessingService {
   }
 
   cleanup(task: Task, payload: Payloads.Cleanup) {
-    Logger.log(`Cleaning up task ${task._id}`);
+    this.logger.log(`Cleaning up task ${task._id}`);
 
     const cleanup = this.configService.get<ODMCleanupConfig>('cleanup');
     const returns = this.configService.get<ODMReturnsConfig>('returns');
@@ -244,7 +247,7 @@ export class TaskProcessingService {
       [coverTask, thumbnailTask],
     );
 
-    Logger.log(`Creating ${tasks.length} child tasks for task ${task._id}`);
+    this.logger.log(`Creating ${tasks.length} child tasks for task ${task._id}`);
 
     return this.sendChildTasks(tasks, task._id);
   }
@@ -325,7 +328,7 @@ export class TaskProcessingService {
   private downloader(task: Task, filePath: string) {
     assert(task.parent_task_id, 'Parent task ID must be provided');
 
-    Logger.log(`Downloaded file ${filePath}`);
+    this.logger.log(`Downloaded file ${filePath}`);
 
     return this.clientProxy
       .emit(TaskEvent.Update, {
@@ -333,7 +336,7 @@ export class TaskProcessingService {
         $inc: { 'payload.downloads.complete': 1 },
       })
       .pipe(
-        tap(() => Logger.log(`Incremented download count for task ${task.parent_task_id}`)),
+        tap(() => this.logger.log(`Incremented download count for task ${task.parent_task_id}`)),
         mergeMap(() =>
           this.clientProxy.send(TaskEvent.Update, {
             _id: task._id,
@@ -369,7 +372,7 @@ export class TaskProcessingService {
       })
       .pipe(
         mergeMap(() => this.clientProxy.send<TaskDocument[]>(TaskEvent.CreateMany, tasks)),
-        tap((tasks) => Logger.log(`Created ${tasks.length} child tasks for task ${parentId}`)),
+        tap((tasks) => this.logger.log(`Created ${tasks.length} child tasks for task ${parentId}`)),
         mergeMap((tasks) => from(tasks)),
         mergeMap((task) => this.clientProxy.emit(Message.ODMProcess, task)),
       );

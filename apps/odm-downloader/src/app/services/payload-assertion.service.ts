@@ -11,7 +11,7 @@ export class PayloadAssertionService {
     return typeof value?.target_directory === 'string';
   }
 
-  validateFilePayload(value: any): value is Payloads.File {
+  validateFilePayload(value: unknown): value is Payloads.File {
     return this.validateTargetDirectory(value) && this.validateFile(value);
   }
 
