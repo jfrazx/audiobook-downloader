@@ -1,15 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { Eye, EyeOff, User, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { useLoginMutation } from './auth.api';
 import { useAppSelector } from '../../hooks/redux';
 import { selectIsAuthenticated } from './auth.slice';
 import { Http } from '@status/codes';
 import type {
-  LoginFormState,
+  AuthApiError,
   FormValidationErrors,
   LoginCredentials,
-  AuthApiError,
+  LoginFormState,
 } from '../../types/auth.types';
 
 interface LoginFormProps {
@@ -34,9 +34,11 @@ const validationRules = {
 
 export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', className = '' }: LoginFormProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [login, { isLoading, error }] = useLoginMutation();
 
+  const from = location.state?.from?.pathname || redirectTo;
   const [formState, setFormState] = useState<LoginFormState>({
     username: {
       value: '',
@@ -57,9 +59,9 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectTo);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, redirectTo]);
+  }, [isAuthenticated, navigate, from]);
 
   const validateField = useCallback((field: keyof LoginCredentials, value: string): string | undefined => {
     const rules = validationRules[field];
@@ -146,10 +148,10 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
       const result = await login(credentials).unwrap();
 
       // Success callback
-      onSuccess?.(redirectTo);
+      onSuccess?.(from);
 
       // Navigate to dashboard or specified redirect
-      navigate(redirectTo);
+      navigate(from, { replace: true });
     } catch (err) {
       console.error('Login failed:', err);
       const authError = err as AuthApiError;
@@ -165,7 +167,7 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     login,
     onSuccess,
     onError,
-    redirectTo,
+    from,
     navigate,
   ]);
 
@@ -253,7 +255,7 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
                     block w-full pl-10 pr-3 py-3 border rounded-lg bg-white/5 text-white placeholder-gray-400
                     focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                     transition-all duration-200
-                    ${formState.username.error ? 'border-red-500' : 'border-white/30 hover:border-white/50'}
+                    ${formState.username.error && formState.username.touched ? 'border-red-500' : 'border-white/30 hover:border-white/50'}
                   `}
                   placeholder="Enter your username"
                   disabled={isLoading || formState.isSubmitting}
@@ -287,7 +289,7 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
                     block w-full pl-10 pr-12 py-3 border rounded-lg bg-white/5 text-white placeholder-gray-400
                     focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                     transition-all duration-200
-                    ${formState.password.error ? 'border-red-500' : 'border-white/30 hover:border-white/50'}
+                    ${formState.password.error && formState.password.touched ? 'border-red-500' : 'border-white/30 hover:border-white/50'}
                   `}
                   placeholder="Enter your password"
                   disabled={isLoading || formState.isSubmitting}
@@ -369,3 +371,5 @@ export function LoginForm({ onSuccess, onError, redirectTo = '/dashboard', class
     </div>
   );
 }
+
+export default LoginForm;

@@ -51,20 +51,16 @@ export const store = configureStore({
 // Setup RTK Query refetch on focus/reconnect
 setupListeners(store.dispatch);
 
-// Initialize auth restoration on store creation
 store.dispatch(restoreAuth());
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-// Auth-specific state selectors for easier access
 export const selectAuthState = (state: RootState): AuthState => state.auth;
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-// Store persistence helper (optional)
 export const persistAuthState = () => {
   const state = store.getState();
   try {
@@ -80,7 +76,6 @@ export const persistAuthState = () => {
   }
 };
 
-// Cleanup helper for logout
 export const cleanupAuthState = () => {
   try {
     localStorage.removeItem('auth_token');

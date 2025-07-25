@@ -3,6 +3,7 @@ import type { ApiConfig } from '@abd/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import session from 'express-session';
+import process from 'node:process';
 import passport from 'passport';
 import 'multer';
 
@@ -13,13 +14,26 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const api = configService.get<ApiConfig>('api');
 
-  app.enableCors();
+  app.enableCors({
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-KEY'],
+    exposedHeaders: ['Authorization'],
+  });
 
   app.use(
     session({
-      secret: 'super-secret-key-that-you-should-replace-in-production',
+      secret:
+        configService.get<string>('SESSION_SECRET') ||
+        'super-secret-key-that-you-should-replace-in-production',
       resave: false,
       saveUninitialized: false,
+      cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      },
     }),
   );
 

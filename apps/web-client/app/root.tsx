@@ -1,3 +1,4 @@
+import { Provider } from 'react-redux';
 import {
   Links,
   Meta,
@@ -7,9 +8,10 @@ import {
   type MetaFunction,
   type LinksFunction,
 } from 'react-router';
-import { Provider } from 'react-redux';
 import { store } from './store';
+import { AuthInitializer } from './components/auth-initializer';
 import { AppNav } from './app-nav';
+import './styles.css';
 
 export const meta: MetaFunction = () => [
   {
@@ -42,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <Provider store={store}>
           <AppNav />
-          {children}
+          <AuthInitializer children />
           <ScrollRestoration />
           <Scripts />
         </Provider>

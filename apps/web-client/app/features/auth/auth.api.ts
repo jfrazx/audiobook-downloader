@@ -11,11 +11,13 @@ import type {
 
 const baseQuery = fetchBaseQuery({
   baseUrl: '/api/auth/',
+  credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
+    const token = (getState() as RootState)?.auth?.token;
     if (token) {
       headers.set('authorization', `Bearer ${token}`);
     }
+
     return headers;
   },
 });
@@ -23,7 +25,7 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   const result = await baseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 401) {
+  if (result.error && result.error.status === Http.Unauthorized) {
     api.dispatch({ type: 'auth/clearCredentials' });
   }
 
@@ -44,7 +46,7 @@ export const authApi = createApi({
       invalidatesTags: ['Auth', 'User'],
       transformErrorResponse: (response): AuthApiError => {
         return {
-          status: typeof response.status === 'number' ? response.status : 500,
+          status: typeof response.status === 'number' ? response.status : Http.InternalServerError,
           statusText: 'error' in response ? response.error : 'Unknown error',
           message: getErrorMessage(response),
           details: response.data as Record<string, any>,
